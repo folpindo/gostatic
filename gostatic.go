@@ -1,16 +1,35 @@
 package main
-
+ 
+ 
 import (
-  "net/http"
   "log"
+  "net/http"
+  "html/template"
 )
-
+ 
+ 
 func main() {
-  fs := http.FileServer(http.Dir("public"))
-  http.Handle("/", fs)
+  http.HandleFunc("/", root)
+  http.HandleFunc("/greet", greeter)
   log.Println("Listening...")
   err := http.ListenAndServe(":8080", nil)
   if err != nil {
     log.Fatal("ListenAndServe: ", err)
+   }
+}
+ 
+ 
+func root(w http.ResponseWriter, r *http.Request) {
+  t, _ := template.ParseFiles("public/index.html")
+  t.Execute(w, nil)
+}
+ 
+ 
+func greeter(w http.ResponseWriter, r *http.Request) {
+  username := r.FormValue("username")
+  t, _ := template.ParseFiles("public/greeter.html")
+  err := t.Execute(w, username)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
